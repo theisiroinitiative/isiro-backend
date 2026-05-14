@@ -4,7 +4,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendOTPEmail(email, name, otp) {
   const payload = {
-    from: 'Haggle Proof Ledger <isiro.initiatiive@gmail.com>',
+    from: 'Haggle Proof Ledger <support@isiro-initiative.ddnsgeek.com>',
     to: email,
     subject: 'Your OTP Verification Code',
     html: `<h1>Haggle Proof Ledger</h1><p>Hello ${name},\n\nYour OTP verification code is: ${otp}\n\nThis code will expire in a few minutes.\n\nThank you!</p>`
