@@ -22,7 +22,7 @@ dotenv.config();
 const app = express();
 
 // CORS configuration
-const whitelist = [process.env.FRONTEND_URL_TEST, process.env.FRONTEND_URL_PROD, process.env.LOCAL];
+const whitelist = ['http://localhost:5173', 'https://isiro-squad.vercel.app', 'https://isiro-backend.onrender.com'];
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || whitelist.indexOf(origin) !== -1) {
