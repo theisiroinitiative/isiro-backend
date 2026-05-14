@@ -13,7 +13,7 @@ export async function sendOTPEmail(email, name, otp) {
   const response = await resend.emails.send(payload);
   console.log(response);
 
-  if (!response.ok) {
+  if (!response.error) {
     throw new Error(`Failed to send OTP email: ${response.statusText}`);
   }
 
@@ -32,7 +32,7 @@ export async function sendPasswordResetOTPEmail(email, otp) {
 
   const response = await resend.emails.send(payload);
 
-  if (!response.ok) {
+  if (!response.error) {
     throw new Error(`Failed to send password reset OTP email: ${response.statusText}`);
   }
 
