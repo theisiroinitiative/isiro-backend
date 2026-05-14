@@ -22,7 +22,7 @@ dotenv.config();
 const app = express();
 
 // CORS configuration
-const whitelist = [process.env.FRONTEND_URL_TEST, process.env.FRONTEND_URL_PROD];
+const whitelist = [process.env.FRONTEND_URL_TEST, process.env.FRONTEND_URL_PROD, process.env.LOCAL];
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || whitelist.indexOf(origin) !== -1) {
