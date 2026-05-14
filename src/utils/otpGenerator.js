@@ -1,0 +1,8 @@
+export function generateOTP() {
+  return Math.floor(1000000 + Math.random() * 9000000).toString();
+}
+
+export function generateCustomerIdentifier() {
+  return Math.floor(100000000 + Math.random() * 900000000).toString();
+}
+

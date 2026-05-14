@@ -1,0 +1,46 @@
+{
+  "name": "whatsapp-trading-backend",
+  "version": "1.0.0",
+  "description": "A backend service for traders to record sales and manage inventory via WhatsApp.",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.6.0",
+    "@whiskeysockets/baileys": "^7.0.0-rc10",
+    "archiver": "^8.0.0",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.6",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-basic-auth": "^1.2.1",
+    "express-rate-limit": "^7.0.0",
+    "fs-extra": "^11.3.5",
+    "jsonwebtoken": "^9.0.2",
+    "node-fetch": "^3.3.2",
+    "pg": "^8.11.3",
+    "pg-hstore": "^2.3.4",
+    "pino": "^10.3.1",
+    "qrcode-terminal": "^0.12.0",
+    "redis": "^4.6.7",
+    "resend": "^6.12.3",
+    "sequelize": "^6.35.1",
+    "swagger-ui-express": "^5.0.1",
+    "unzipper": "^0.12.3",
+    "yamljs": "^0.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  },
+  "overrides": {
+    "glob": "^13.0.0",
+    "inflight": "npm:lru-cache@^7.0.0"
+  },
+  "author": "Your Name",
+  "license": "MIT",
+  "type": "module"
+}
