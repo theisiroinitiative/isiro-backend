@@ -75,7 +75,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/accounts', accountRoutes);
 
 // Sync all database models in correct dependency order
-await sequelize.sync({ alter: true });
+await sequelize.sync();
 
 // Start background jobs
 startCronJobs();
