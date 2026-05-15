@@ -112,6 +112,10 @@ class UserServices {
     await user.save();
     return true;
   }
+
+  async fetchUserByWhatsappCode(code) {
+    return await User.findOne({ where: { whatsappVerificationCode: code, isWhatsappVerified: false } });
+  }
 }
 
 export default new UserServices();

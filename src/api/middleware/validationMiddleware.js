@@ -5,10 +5,12 @@ export function validateSignup(req, res, next) {
     return res.status(400).json({ error: 'Name is required and must be at least 2 characters.' });
   }
 
+  const trimmedEmail = email ? email.trim() : '';
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!email || !emailRegex.test(email)) {
+  if (!email || !emailRegex.test(trimmedEmail)) {
     return res.status(400).json({ error: 'A valid email is required.' });
   }
+  req.body.email = trimmedEmail;
 
   const phoneRegex = /^\+?\d{7,15}$/;
   if (!phoneNumber || !phoneRegex.test(phoneNumber)) {
@@ -43,10 +45,12 @@ export function validateBusinessDetails(req, res, next) {
 export function validateLogin(req, res, next) {
   const { email, password } = req.body;
 
+  const trimmedEmail = email ? email.trim() : '';
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!email || !emailRegex.test(email)) {
+  if (!email || !emailRegex.test(trimmedEmail)) {
     return res.status(400).json({ error: 'A valid email is required.' });
   }
+  req.body.email = trimmedEmail;
 
   if (!password || typeof password !== 'string' || password.length < 6) {
     return res.status(400).json({ error: 'Password is required and must be at least 6 characters.' });

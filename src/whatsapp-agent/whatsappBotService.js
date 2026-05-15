@@ -3,6 +3,7 @@ import pino from 'pino';
 import userServices from '../services/dbServices/userServices.js';
 import { messageProcessor } from '../services/ai/ai-to-system-intepreter.js';
 import { usePostgresAuthState } from '../models/whatsappSession.js';
+import redisClient from '../config/redis.js';
 
 const makeWASocket = pkg.default || pkg;
 
@@ -99,10 +100,28 @@ class WhatsAppBotService {
         const hasMedia = !!(message.message.imageMessage || message.message.audioMessage || message.message.videoMessage || message.message.documentMessage);
 
         // Extract phone number from WhatsApp JID (e.g., '2348012345678@s.whatsapp.net' -> '2348012345678')
-        const phoneNumber = from.split('@')[0];
+        let phoneNumber = from.split('@')[0];
+
+        // LID Support: Check if this JID (e.g. @lid) is already mapped to a phone number in Redis
+        const mappedPhone = await redisClient.get(`jid_map:${from}`);
+        if (mappedPhone) {
+            phoneNumber = mappedPhone;
+        }
 
         // Check for WhatsApp Verification Code
-        const user = await userServices.fetchUserDataByPhone(phoneNumber); // Need to implement this
+        let user = await userServices.fetchUserDataByPhone(phoneNumber);
+        
+        // If user not found by JID-prefix, they might be using an LID and sending their verification code
+        if (!user && body.trim().length >= 4) {
+            const potentialUser = await userServices.fetchUserByWhatsappCode(body.trim().toUpperCase());
+            if (potentialUser) {
+                // Found them! Map this LID JID to their phone number for future messages
+                await redisClient.set(`jid_map:${from}`, potentialUser.phoneNumber);
+                user = potentialUser;
+                phoneNumber = potentialUser.phoneNumber;
+            }
+        }
+
         if (user && user.whatsappVerificationCode && body.trim().toUpperCase() === user.whatsappVerificationCode) {
             const verified = await userServices.verifyWhatsappCode(phoneNumber, body.trim().toUpperCase());
             if (verified) {
