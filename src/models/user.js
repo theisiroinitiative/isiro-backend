@@ -65,6 +65,10 @@ const User = sequelize.define('User', {
   isWhatsappVerified: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: false
   }
 }, {
   tableName: 'users',
