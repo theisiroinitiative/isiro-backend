@@ -4,7 +4,7 @@ import { createSquadVirtualAccount, lookupAccount, fundTransfer } from "../../se
 import { generateCustomerIdentifier } from "../../utils/otpGenerator.js";
 import webhookProcessor from "../../services/ai/webhookProcessor.js";
 import crypto from "crypto";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 class AccountController {
     async createAccount(req, res) {
