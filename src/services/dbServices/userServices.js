@@ -68,6 +68,10 @@ class UserServices {
     return !!user;
   }
 
+  async fetchUserDataByEmail(email) {
+    return await User.findOne({ where: { email } });
+  }
+
   async userExistsByPhone(phoneNumber) {
     const user = await User.findOne({ where: { phoneNumber } });
     return !!user;

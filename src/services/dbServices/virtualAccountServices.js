@@ -30,11 +30,25 @@ class AccountService {
             if (!account) {
                 throw new Error('Virtual account not found');
             }
-            account.balance = parseFloat(account.balance) + parseFloat(amount);
-            await account.save();
+            await account.increment('balance', { by: parseFloat(amount) });
+            await account.reload();
             return account;
         } catch (error) {
             throw new Error(`Error crediting account: ${error.message}`);
+        }
+    }
+
+    async creditAccount(accountId, amount) {
+        try {
+            const account = await virtualAccount.findByPk(accountId);
+            if (!account) {
+                throw new Error('Virtual account not found');
+            }
+            await account.increment('balance', { by: parseFloat(amount) });
+            await account.reload();
+            return account;
+        } catch (error) {
+            throw new Error(`Error crediting account by ID: ${error.message}`);
         }
     }
 
@@ -69,6 +83,35 @@ class AccountService {
             return true;
         } catch (error) {
             throw new Error(`Error deleting virtual account: ${error.message}`);
+        }
+    }
+
+    async getAccountByUserId(userId) {
+        try {
+            return await virtualAccount.findOne({ where: { userId } });
+        } catch (error) {
+            throw new Error(`Error fetching virtual account: ${error.message}`);
+        }
+    }
+
+    async debitAccount(accountId, amount) {
+        try {
+            const account = await virtualAccount.findByPk(accountId);
+            if (!account) {
+                throw new Error('Virtual account not found');
+            }
+            const currentBalance = parseFloat(account.balance);
+            const debitAmount = parseFloat(amount);
+            if (currentBalance < debitAmount) {
+                throw new Error('Insufficient balance');
+            }
+            
+            // Atomic decrement
+            await account.decrement('balance', { by: debitAmount });
+            await account.reload();
+            return account;
+        } catch (error) {
+            throw new Error(`Error debiting account: ${error.message}`);
         }
     }
 }

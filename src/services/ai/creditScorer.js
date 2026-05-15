@@ -73,7 +73,9 @@ class CreditScorer {
             where: { 
                 userId, 
                 verified: false,
-                'phaseTwo_result.status': 'UNRESOLVED' 
+                phaseTwo_result: {
+                    status: 'UNRESOLVED'
+                }
             } 
         });
 

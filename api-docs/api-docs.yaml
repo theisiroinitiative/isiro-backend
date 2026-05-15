@@ -181,7 +181,7 @@ paths:
                 password: { type: string }
       responses:
         '200':
-          description: Login successful
+          description: Login successful. Note that users must have verified their email via /verify-email before they can log in.
           headers:
             Set-Cookie:
               description: accessToken and refreshToken cookies
@@ -195,6 +195,8 @@ paths:
                   user: { $ref: '#/components/schemas/User' }
         '401':
           description: Invalid credentials
+        '403':
+          description: Forbidden - Email not verified
 
   /users/password-reset/request:
     post:
@@ -227,10 +229,11 @@ paths:
           application/json:
             schema:
               type: object
-              required: [email, password]
+              required: [email, password, otp]
               properties:
                 email: { type: string }
                 password: { type: string }
+                otp: { type: string }
       responses:
         '200':
           description: Password updated successfully
@@ -437,7 +440,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [first_name, last_name, middle_name, mobile_num, dob, email, bvn, gender, address, beneficiary_account, withdrawal_pin]
+              required: [first_name, last_name, middle_name, mobile_num, dob, email, bvn, gender, address, beneficiary_account, beneficiary_bank_code, withdrawal_pin]
               properties:
                 first_name: { type: string }
                 last_name: { type: string }
@@ -449,6 +452,7 @@ paths:
                 gender: { type: string }
                 address: { type: string }
                 beneficiary_account: { type: string }
+                beneficiary_bank_code: { type: string }
                 withdrawal_pin: { type: string }
       responses:
         '201':
@@ -501,8 +505,11 @@ paths:
     post:
       tags:
         - Account Management
-      summary: Squad webhook for virtual account transactions
-      description: Unauthenticated endpoint, validated using x-squad-signature header.
+      summary: Squad webhook for virtual account transactions (Credits & Debits)
+      description: >
+        Unauthenticated endpoint for SquadCo asynchronous notifications. 
+        SECURITY: This endpoint MUST be validated using the `x-squad-signature` header verified against the raw request body. 
+        Handles `charge_successful` (Credit), `transfer.success`, and `transfer.failed` (Refund) events.
       parameters:
         - name: x-squad-signature
           in: header
@@ -515,3 +522,73 @@ paths:
       responses:
         '200':
           description: Webhook processed successfully
+
+  /accounts/lookup:
+    get:
+      tags:
+        - Account Management
+      summary: Lookup destination bank account details before withdrawal
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: bank_code
+          in: query
+          required: true
+          schema: { type: string }
+        - name: account_number
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Account details retrieved successfully
+        '400':
+          description: Validation error or lookup failed
+
+  /accounts/withdraw:
+    post:
+      tags:
+        - Account Management
+      summary: Withdraw funds from virtual account to a real bank account
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount, pin]
+              properties:
+                amount: { type: number }
+                pin: { type: string }
+      responses:
+        '200':
+          description: Withdrawal initiated successfully
+        '400':
+          description: Invalid PIN or insufficient funds
+        '502':
+          description: Transfer failed
+
+  /accounts/history:
+    get:
+      tags:
+        - Account Management
+      summary: Get all withdrawal transfer history
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: List of transfers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: integer }
+                    amount: { type: number }
+                    status: { type: string }
+                    transaction_reference: { type: string }
+                    createdAt: { type: string, format: date-time }

@@ -1,5 +1,5 @@
 {
-  "name": "whatsapp-trading-backend",
+  "name": "isiro-backend",
   "version": "1.0.0",
   "description": "A backend service for traders to record sales and manage inventory via WhatsApp.",
   "main": "src/app.js",

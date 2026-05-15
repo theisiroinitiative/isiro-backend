@@ -46,10 +46,31 @@ export async function detectIntent({ text, image, audio, previousContext }) {
     9. 'GET_HELP' -> user is asking for help or how to use the system.
     Schema: { "intent": "GET_HELP", "suggested_response": [explanation in Pidgin] }
 
+    10. 'WITHDRAW_FUNDS' -> user wants to withdraw money from their virtual account to their bank.
+    Schema: { "intent": "WITHDRAW_FUNDS", "amount": [amount in Naira] }
+    If amount is missing, return: { "intent": "WITHDRAW_FUNDS", "action": "REQUEST_DATA", "suggested_response": [ask for amount in Pidgin] }
+    IMPORTANT: When previousContext has intent 'WITHDRAW_FUNDS' and the user sends a short number/PIN (4-6 digits), 
+    treat it as their withdrawal PIN and return:
+    { "intent": "WITHDRAW_FUNDS", "amount": [from previousContext.extractedData.amount], "withdrawal_pin": "[the PIN they sent]" }
+
+    11. 'GET_BALANCE' -> user wants to check their virtual account balance or know how much money they have.
+    Schema: { "intent": "GET_BALANCE" }
+
+    --- MULTI-MODAL HANDLING ---
+    If you receive an IMAGE:
+    - If it's a receipt, invoice, or handwritten note, extract the business data (product names, total amounts, quantities) and map it to 'RECORD_SALE' or 'RECORD_EXPENSE'.
+    - If it's a photo of a physical product, try to extract its name/brand for 'NEW_PRODUCT' or 'UPDATE_STOCK'.
+    - If the image is blurry, illegible, or lacks context, return an action: "REQUEST_DATA" asking the user what the image is about in Pidgin.
+
+    If you receive AUDIO (Voice Note):
+    - Transcribe the audio and analyze the text to extract the intent exactly as you would for a text message.
+    - Handle background noise or unclear speech by returning an action: "REQUEST_DATA" asking the user to repeat or type it in Pidgin.
+
     --- STATEFULNESS & CONTEXT ---
     If a 'previousContext' is provided, it contains the 'intent' and 'extractedData' from a previous incomplete interaction.
     - Check if the new message provides the missing info for the 'previousContext.intent'.
     - If the previous intent was 'UNMATCHED_WEBHOOK_TRANSACTION' and the user explains what the money is for, convert the intent to 'RECORD_SALE' or 'RECORD_EXPENSE' (usually sale) and use the 'extractedData.amount' and 'extractedData.squadTransactionRef' from the context.
+    - If the previous intent was 'WITHDRAW_FUNDS' and the user sends a PIN or number, return the merged data with withdrawal_pin included.
     - If it is related and provides more info, return the merged data with the original intent.
     - If the new message is UNRELATED (e.g., user starts a new topic), return: { "intent": "UNRELATED", "action": "CLEAR_STATE" }.
     `;

@@ -25,11 +25,12 @@ const virtualAccount = sequelize.define('virtual-accounts', {
     },
     beneficiary_account: {
         type: DataTypes.STRING,
-        unique: true
+    },
+    beneficiary_bank_code: {
+        type: DataTypes.STRING,
     },
     withdrawal_pin: {
         type: DataTypes.STRING,
-        unique: true
     },
     account_description: { type: DataTypes.TEXT },
     bankName: { type: DataTypes.STRING },
@@ -39,8 +40,6 @@ const virtualAccount = sequelize.define('virtual-accounts', {
         defaultValue: 0.00
     }
 });
-
-await virtualAccount.sync();
 
 User.hasMany(virtualAccount, { foreignKey: 'userId' });
 virtualAccount.belongsTo(User, { foreignKey: 'userId' });

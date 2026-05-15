@@ -12,9 +12,9 @@ class SaleServices {
             throw new Error('Insufficient inventory');
         }
         
-        // Deduct sold quantity from inventory
-        inventoryItem.quantityInStock -= quantity;
-        await inventoryItem.save();
+        // Deduct sold quantity from inventory atomically
+        await inventoryItem.decrement('quantityInStock', { by: quantity });
+        await inventoryItem.reload();
 
         // Calculate profitMade
         const profitMade = amountPaid - (inventoryItem.costPrice * quantity);
@@ -35,13 +35,14 @@ class SaleServices {
         return saleRecord;
     }
 
-    async findSales({ productName, minPrice, maxPrice }) {
-        // Filters: productName (string), minPrice (number), maxPrice (number)
+    async findSales({ userId, productName, minPrice, maxPrice }) {
+        // Filters: userId (UUID), productName (string), minPrice (number), maxPrice (number)
         const where = {};
+        if (userId) where.userId = userId;
         if (minPrice !== undefined || maxPrice !== undefined) {
-            where.total = {};
-            if (minPrice !== undefined) where.total[Op.gte] = minPrice;
-            if (maxPrice !== undefined) where.total[Op.lte] = maxPrice;
+            where.amountPaid = {};
+            if (minPrice !== undefined) where.amountPaid[Op.gte] = minPrice;
+            if (maxPrice !== undefined) where.amountPaid[Op.lte] = maxPrice;
         }
 
         const include = [];

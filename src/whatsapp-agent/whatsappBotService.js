@@ -100,7 +100,6 @@ class WhatsAppBotService {
 
         // Extract phone number from WhatsApp JID (e.g., '2348012345678@s.whatsapp.net' -> '2348012345678')
         const phoneNumber = from.split('@')[0];
-        let bypass = true;
 
         // Check for WhatsApp Verification Code
         const user = await userServices.fetchUserDataByPhone(phoneNumber); // Need to implement this
@@ -112,10 +111,13 @@ class WhatsAppBotService {
             }
         }
 
-        const userExists = await userServices.userExistsByPhone(phoneNumber);
-
-        if (!userExists && !bypass) {
+        if (!user) {
             await this.sendMessage(from, 'Your phone number is not registered. Please sign up first.');
+            return;
+        }
+
+        if (!user.isWhatsappVerified) {
+            await this.sendMessage(from, 'Your WhatsApp number never verified o. Abeg send your verification code first.');
             return;
         }
 
@@ -154,6 +156,9 @@ class WhatsAppBotService {
                             mimeType,
                             base64: buffer.toString('base64')
                         };
+                    } else {
+                        await this.sendMessage(from, 'Ah, I no support this kind file yet o (like video or document). Abeg send voice note or picture.');
+                        return;
                     }
                 }
             } catch (err) {
@@ -169,7 +174,9 @@ class WhatsAppBotService {
             console.log('AI Result:', aiResult);
 
             // Extract the natural language text
-            const replyText = aiResult.raw ? aiResult.raw : JSON.stringify(aiResult, null, 2);
+            const replyText = typeof aiResult === 'string'
+                ? aiResult
+                : (aiResult.raw || aiResult.suggested_response || "I don process your request, but I no fit explain am well. Try again abeg.");
 
             await this.sendMessage(from, replyText);
         } catch (err) {

@@ -31,15 +31,13 @@ const Inventory = sequelize.define('Inventory', {
     allowNull: false
   },
   sellingPrice: {
-    type: DataTypes.JSONB, // Use JSONB for Postgres
+    type: DataTypes.FLOAT,
     allowNull: false
   }
 }, {
   tableName: 'inventories',
   timestamps: true
 });
-
-await Inventory.sync();
 
 // Association
 User.hasMany(Inventory, { foreignKey: 'userId' });

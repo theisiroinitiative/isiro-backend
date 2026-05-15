@@ -1,19 +1,21 @@
 import Inventory from '../../models/inventory.js';
+import { Op } from 'sequelize';
 
 class InventoryService {
     async addItem(item) {
         // item: { productName, quantityInStock, costPrice, sellingPrice }
         const [inventoryItem, created] = await Inventory.findOrCreate({
-            where: { productName: item.productName },
+            where: { productName: item.productName, userId: item.userId },
             defaults: {
                 quantityInStock: item.quantityInStock,
                 costPrice: item.costPrice,
-                sellingPrice: item.sellingPrice
+                sellingPrice: item.sellingPrice,
+                userId: item.userId
             }
         });
 
         if (!created) {
-            inventoryItem.quantityInStock += item.quantityInStock;
+            await inventoryItem.increment('quantityInStock', { by: item.quantityInStock });
             inventoryItem.costPrice = item.costPrice;
             inventoryItem.sellingPrice = item.sellingPrice;
             await inventoryItem.save();
@@ -27,8 +29,14 @@ class InventoryService {
         if (!inventoryItem) {
             throw new Error('Item not found in inventory');
         }
-        inventoryItem.quantityInStock += quantity;
-        await inventoryItem.save();
+
+        const newQuantity = inventoryItem.quantityInStock + quantity;
+        if (newQuantity < 0) {
+            throw new Error(`Insufficient stock o. You only get ${inventoryItem.quantityInStock} left for ${inventoryItem.productName}.`);
+        }
+
+        await inventoryItem.increment('quantityInStock', { by: quantity });
+        await inventoryItem.reload();
         return inventoryItem;
     }
 
@@ -58,7 +66,10 @@ class InventoryService {
 
     async getProductByName(userId, productName) {
         return await Inventory.findOne({
-            where: { userId, productName }
+            where: { 
+                userId, 
+                productName: { [Op.iLike]: `%${productName}%` } 
+            }
         });
     }
 }

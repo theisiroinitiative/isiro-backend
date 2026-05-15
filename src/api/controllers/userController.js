@@ -13,6 +13,22 @@ class UserController {
       // Validate input (assumes validateSignup middleware already ran)
       const { name, email, phoneNumber, password } = req.body;
 
+      // Check if user already exists
+      const existingUser = await userServices.fetchUserDataByEmail(email); // Fetch full user to check verification
+      const phoneExists = await userServices.userExistsByPhone(phoneNumber);
+      
+      if (existingUser && existingUser.isEmailVerified) {
+        return res.status(400).json({ error: 'User with this email already exists and is verified.' });
+      }
+      if (phoneExists) {
+        // If phone exists, we check the same email condition
+        if (existingUser && !existingUser.isEmailVerified && existingUser.phoneNumber === phoneNumber) {
+            // This is fine, we will just resend OTP
+        } else {
+            return res.status(400).json({ error: 'User with this phone number already exists.' });
+        }
+      }
+
       // Generate OTP
       const otp = generateOTP();
 
@@ -22,8 +38,15 @@ class UserController {
       // Send OTP email
       const sent = await sendOTPEmail(email, name, otp);
       if (sent) {
-        await userServices.createUser({ name, email, phoneNumber, password });
-        res.status(201).json({ message: 'User created. OTP sent to email for verification.' });
+        if (!existingUser) {
+            await userServices.createUser({ name, email, phoneNumber, password });
+        } else {
+            // Update the unverified user's details if they changed during re-registration attempt
+            // (e.g. they fixed a typo in their name)
+            // But password must be re-hashed if provided
+            await userServices.updatePassword(email, password); 
+        }
+        res.status(201).json({ message: 'OTP sent to email for verification.' });
       }
 
     } catch (error) {
@@ -47,12 +70,15 @@ class UserController {
         return res.status(404).json({ error: 'User not found.' });
       }
 
+      // Delete OTP after successful verification
+      await otpService.deleteOTP(email);
+
       // Fetch user data
       const userData = await userServices.fetchUserData(user.id);
 
       // Create tokens
       const accessToken = signAccessToken({ id: user.id, email: user.email, role: user.role });
-      const refreshToken = signRefreshToken({ id: user.id, email: user.email, role: user.role });
+      const refreshToken = await signRefreshToken({ id: user.id, email: user.email, role: user.role });
 
       // Set tokens in httpOnly cookies
       res.cookie('accessToken', accessToken, { httpOnly: true, maxAge: 30 * 60 * 1000 }); // 30 mins
@@ -77,12 +103,17 @@ class UserController {
         return res.status(401).json({ error: 'Invalid email or password.' });
       }
 
+      // Gatekeeper: Prevent login if email is not verified
+      if (!user.isEmailVerified) {
+        return res.status(403).json({ error: 'Please verify your email first.' });
+      }
+
       // Fetch user data
       const userData = await userServices.fetchUserData(user.id);
 
       // Create tokens
       const accessToken = signAccessToken({ id: user.id, email: user.email, role: user.role });
-      const refreshToken = signRefreshToken({ id: user.id, email: user.email, role: user.role });
+      const refreshToken = await signRefreshToken({ id: user.id, email: user.email, role: user.role });
 
       // Set tokens in httpOnly cookies
       res.cookie('accessToken', accessToken, { httpOnly: true, maxAge: 30 * 60 * 1000, sameSite: 'none', secure: true }); // 30 mins
@@ -121,11 +152,26 @@ class UserController {
   // 2. Update user password after OTP verification
   async updatePassword(req, res) {
     try {
-      const { email, password } = req.body;
+      const { email, password, otp } = req.body;
+      
+      if (!email || !password || !otp) {
+        return res.status(400).json({ error: 'Email, password, and OTP are required.' });
+      }
+
+      // Verify OTP
+      const isValid = await otpService.verifyOTP(email, otp);
+      if (!isValid) {
+        return res.status(400).json({ error: 'Invalid or expired OTP.' });
+      }
+
       const updated = await userServices.updatePassword(email, password);
       if (!updated) {
         return res.status(404).json({ error: 'User not found or password not updated.' });
       }
+
+      // Delete OTP after successful password reset
+      await otpService.deleteOTP(email);
+
       res.status(200).json({ message: 'Password updated successfully.' });
     } catch (error) {
       res.status(500).json({ error: error.message });

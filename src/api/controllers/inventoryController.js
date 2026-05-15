@@ -1,21 +1,26 @@
 import InventoryService from '../../services/dbServices/inventoryService.js';
 
 const InventoryController = {
-  getInventory: (req, res) => {
-    res.json(InventoryService.getInventory());
-  },
-  addItem: (req, res) => {
+  getInventory: async (req, res) => {
     try {
-      const updated = InventoryService.addItem(req.body);
+      const inventory = await InventoryService.getInventoryByUserId(req.user.id);
+      res.json(inventory);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+  addItem: async (req, res) => {
+    try {
+      const updated = await InventoryService.addItem(req.body);
       res.json(updated);
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
   },
-  removeItem: (req, res) => {
+  removeItem: async (req, res) => {
     try {
       const { id, quantity } = req.body;
-      const updated = inventoryService.removeItem(id, quantity);
+      const updated = await InventoryService.removeItem(id, quantity);
       res.json(updated);
     } catch (err) {
       res.status(400).json({ error: err.message });

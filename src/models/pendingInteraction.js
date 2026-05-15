@@ -39,8 +39,6 @@ const PendingInteraction = sequelize.define('PendingInteraction', {
     timestamps: true
 });
 
-await PendingInteraction.sync();
-
 User.hasOne(PendingInteraction, { foreignKey: 'userId' });
 PendingInteraction.belongsTo(User, { foreignKey: 'userId' });
 

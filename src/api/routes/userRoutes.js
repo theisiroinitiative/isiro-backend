@@ -15,7 +15,7 @@ router.post('/verify-email', userController.verifyUserEmail);
 router.post('/login', validateLogin, userController.loginUser);
 
 // Send OTP for password reset (email verification for password reset)
-router.post('/post/password-reset/request', userController.verifyUserExist);
+router.post('/password-reset/request', userController.verifyUserExist);
 
 // Set new password after OTP verification
 router.post('/password-reset/new', userController.updatePassword);

@@ -1,15 +1,25 @@
 import express from "express";
-import AccountController from "../controllers/accountController.js";
+import accountController from "../controllers/accountController.js";
 import { authenticateToken, authorizeRoles } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
-const controller = new AccountController();
 
-router.post('/create', authenticateToken, authorizeRoles(['trader']), controller.createAccount);
-router.patch('/update/:id', authenticateToken, authorizeRoles(['trader']), controller.updateAccountInfo);
-router.delete('/delete/:id', authenticateToken, authorizeRoles(['trader']), controller.deleteAccount);
+// Virtual Account Management
+router.post('/create', authenticateToken, authorizeRoles(['trader']), accountController.createAccount.bind(accountController));
+router.patch('/update/:id', authenticateToken, authorizeRoles(['trader']), accountController.updateAccountInfo.bind(accountController));
+router.delete('/delete/:id', authenticateToken, authorizeRoles(['trader']), accountController.deleteAccount.bind(accountController));
 
-// Webhook endpoint (unauthenticated since it uses x-squad-signature for validation)
-router.post('/webhook', controller.squadWebhook);
+// Account Lookup (verify recipient before transfer)
+router.post('/lookup-account', authenticateToken, authorizeRoles(['trader']), accountController.lookupBankAccount.bind(accountController));
+
+// Withdrawals
+router.post('/withdraw', authenticateToken, authorizeRoles(['trader']), accountController.withdrawFunds.bind(accountController));
+router.get('/transfers', authenticateToken, authorizeRoles(['trader']), accountController.getTransferHistory.bind(accountController));
+
+// Balance
+router.get('/balance', authenticateToken, authorizeRoles(['trader']), accountController.getBalance.bind(accountController));
+
+// Squad Webhook (unauthenticated — uses x-squad-signature for validation)
+router.post('/webhook', accountController.squadWebhook.bind(accountController));
 
 export default router;

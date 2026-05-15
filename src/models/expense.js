@@ -44,8 +44,6 @@ const expense = sequelize.define('expense', {
     }
 });
 
-await expense.sync();
-
 User.hasMany(expense, { foreignKey: 'userId' });
 expense.belongsTo(User, { foreignKey: 'userId' });
 

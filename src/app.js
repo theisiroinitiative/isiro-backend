@@ -13,6 +13,9 @@ import whatsappBotService from './whatsapp-agent/whatsappBotService.js';
 import salesRoutes from './api/routes/salesRoutes.js';
 import inventoryRoutes from './api/routes/inventoryRoutes.js';
 import userRoutes from './api/routes/userRoutes.js';
+import accountRoutes from './api/routes/accountRoutes.js';
+import sequelize from './utils/sequelize.js';
+import { startCronJobs } from './jobs/cronJobs.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,10 +47,16 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
-app.use(express.json());
+const jsonOptions = {
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+};
+
+app.use(express.json(jsonOptions));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(bodyParser.json());
+app.use(bodyParser.json(jsonOptions));
 
 // Load Swagger YAML
 const swaggerDocument = YAML.load(path.join(__dirname, '../api-docs/api-docs.yaml'));
@@ -63,6 +72,14 @@ app.use('/api-docs', swaggerAuth, swaggerUi.serve, swaggerUi.setup(swaggerDocume
 app.use('/api/sales', salesRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/accounts', accountRoutes);
+
+// Sync all database models in correct dependency order
+await sequelize.sync();
+
+// Start background jobs
+startCronJobs();
+
 whatsappBotService.init();
 const PORT = process.env.PORT || 3050;
 app.listen(PORT, () => {

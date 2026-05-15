@@ -7,8 +7,6 @@ const WhatsAppSession = sequelize.define('wpsession', {
     sessionData: DataTypes.BLOB('long')
 });
 
-await WhatsAppSession.sync();
-
 export const usePostgresAuthState = async () => {
     const writeData = async (data, key) => {
         const jsonStr = JSON.stringify(data, BufferJSON.replacer);

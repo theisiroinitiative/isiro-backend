@@ -25,9 +25,10 @@ export async function sendOTPEmail(email, name, otp) {
 
 export async function sendPasswordResetOTPEmail(email, otp) {
   const payload = {
+    from: 'Haggle Proof Ledger <support@isiro-initiative.ddnsgeek.com>',
     to: email,
     subject: 'Password Reset OTP',
-    body: `You requested a password reset.\n\nYour OTP code is: ${otp}\n\nIf you did not request this, please ignore this email.`
+    html: `<h1>Password Reset</h1><p>You requested a password reset.<br><br>Your OTP code is: <strong>${otp}</strong><br><br>If you did not request this, please ignore this email.</p>`
   };
 
   const response = await resend.emails.send(payload);

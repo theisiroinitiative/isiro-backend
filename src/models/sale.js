@@ -65,8 +65,6 @@ const Sale = sequelize.define('Sale', {
   timestamps: true
 });
 
-await Sale.sync();
-
 Inventory.hasMany(Sale, { foreignKey: 'productId' });
 Sale.belongsTo(Inventory, { foreignKey: 'productId' });
 

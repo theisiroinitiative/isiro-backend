@@ -10,6 +10,22 @@ const redisClient = createClient({
 
 redisClient.on('error', (err) => console.error('Redis Client Error', err));
 
-await redisClient.connect();
+async function connectWithRetry(maxRetries = 3, delayMs = 3000) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await redisClient.connect();
+      console.log('Redis connected successfully.');
+      return;
+    } catch (err) {
+      console.error(`Redis connection attempt ${attempt}/${maxRetries} failed:`, err.message);
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+  console.error('Redis: All connection attempts failed. OTP features will be unavailable.');
+}
+
+await connectWithRetry();
 
 export default redisClient;

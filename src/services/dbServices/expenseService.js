@@ -2,13 +2,13 @@ import expense from "../../models/expense.js";
 
 class ExpenseService {
     async createExpense(expenseData) {
-        const expense = await expense.create(expenseData);
-        return expense;
+        const newExpense = await expense.create(expenseData);
+        return newExpense;
     }
 
     async getExpenseById(expenseId) {
-        const expense = await expense.findByPk(expenseId);
-        return expense;
+        const found = await expense.findByPk(expenseId);
+        return found;
     }
 
     async getExpensesByUserId(userId) {
@@ -17,17 +17,17 @@ class ExpenseService {
     }
 
     async updateExpense(expenseId, expenseData) {
-        const expense = await expense.findByPk(expenseId);
-        if (!expense) return null;
-        expense.set(expenseData);
-        await expense.save();
-        return expense;
+        const existing = await expense.findByPk(expenseId);
+        if (!existing) return null;
+        existing.set(expenseData);
+        await existing.save();
+        return existing;
     }
 
     async deleteExpense(expenseId) {
-        const expense = await expense.findByPk(expenseId);
-        if (!expense) return null;
-        await expense.destroy();
+        const existing = await expense.findByPk(expenseId);
+        if (!existing) return null;
+        await existing.destroy();
         return true;
     }
 }

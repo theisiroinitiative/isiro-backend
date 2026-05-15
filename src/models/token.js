@@ -32,7 +32,6 @@ const Token = sequelize.define('Token', {
   timestamps: true
 });
 
-await Token.sync({alter: true});
 // Association (optional, for Sequelize magic methods)
 User.hasMany(Token, { foreignKey: 'email', sourceKey: 'email' });
 Token.belongsTo(User, { foreignKey: 'email', targetKey: 'email' });

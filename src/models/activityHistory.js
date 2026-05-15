@@ -53,8 +53,6 @@ const activityHistory = sequelize.define('activityHistory', {
     }
 });
 
-await activityHistory.sync();
-
 User.hasMany(activityHistory, { foreignKey: 'userId' });
 activityHistory.belongsTo(User, { foreignKey: 'userId' });
 
