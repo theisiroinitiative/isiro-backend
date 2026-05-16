@@ -190,7 +190,7 @@ async function executeWriteOperation(userId, intent, phaseTwo) {
                 productId: data.productId,
                 userId,
                 quantity: data.quantity || data.quantitySold,
-                amountPaid: data.amountPaid,
+                amountPaid: data.amountPaid || data.amount,
                 paymentSource: data.paymentSource,
                 verified: phaseTwo.verified,
                 confidenceScore: phaseTwo.confidenceScore
