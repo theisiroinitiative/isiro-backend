@@ -4,7 +4,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "dummy_key");
 
 export async function BehaviouralAnalyzerAndDecisionMaker({ text, image, audio }) {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    const prompt = `
+    let prompt = `
     You are part of an intelligent business management system for the Nigerian informal economy.
     Your job is Phase 2: Behavioral Analysis and Decision Making.
     You will analyze a transaction report (from Phase 1) against the business context (historical data, current stock, etc.) to detect anomalies, fraud attempts, or discrepancies.
