@@ -189,7 +189,7 @@ async function executeWriteOperation(userId, intent, phaseTwo) {
             break;
         case "NEW_PRODUCT":
             // Handle both single object and array (for backward compatibility and new multi-product support)
-            const products = Array.isArray(data.products) ? data.products : (data.productName ? [data] : []);
+            const products = Array.isArray(data) ? data : (Array.isArray(data.products) ? data.products : (data.productName ? [data] : []));
             for (const product of products) {
                 await InventoryService.addItem({
                     ...product,
