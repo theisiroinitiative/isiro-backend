@@ -44,7 +44,6 @@ class AccountController {
             const hashedPin = await bcrypt.hash(withdrawal_pin, 10);
 
             const squadResponse = await createSquadVirtualAccount({
-                user_id: userId,
                 first_name,
                 last_name,
                 middle_name,
@@ -54,8 +53,9 @@ class AccountController {
                 bvn,
                 gender,
                 address,
-                customer_identifier,
-                beneficiary_account
+                beneficiary_account,
+                beneficiary_bank_code,
+                customer_identifier
             });
 
             // Store the virtual account info in the database
@@ -215,7 +215,7 @@ class AccountController {
                 if (balanceDebited) {
                     await accountService.creditAccount(account.id, parseFloat(amount));
                 }
-                
+
                 await transferService.updateTransferStatus(transfer.id, 'FAILED', { error: transferError.message });
                 res.status(502).json({
                     message: `Transfer failed: ${transferError.message}. Your balance has been restored if it was affected.`
@@ -276,7 +276,7 @@ class AccountController {
                 const dataToHash = `${payload.transaction_reference}|${payload.virtual_account_number}|${payload.currency}|${payload.principal_amount}|${payload.settled_amount}|${payload.customer_identifier}`;
                 hash = crypto.createHmac('sha512', secretKey).update(dataToHash).digest('hex');
             } else {
-            // Handle Version 1 & 2 webhook hashing
+                // Handle Version 1 & 2 webhook hashing
                 if (!req.rawBody) {
                     return res.status(500).json({ response_code: 500, response_description: 'Raw body missing for validation' });
                 }
@@ -299,7 +299,7 @@ class AccountController {
 
                 const vAccountNum = body.virtual_account_number;
                 const txRef = body.transaction_reference || payload.TransactionRef;
-                
+
                 if (vAccountNum) {
                     await accountService.creditAccountByAccountNumber(vAccountNum, amountInNaira);
 
@@ -319,11 +319,11 @@ class AccountController {
                 // Debit: outgoing transfer confirmation
                 const txRef = body.transaction_reference || payload.TransactionRef;
                 const transfer = await transferService.getTransferByReference(txRef);
-                
+
                 if (transfer && transfer.status === 'PENDING') {
                     const newStatus = (eventType === 'transfer.failed') ? 'FAILED' : 'SUCCESS';
                     await transferService.updateTransferStatus(transfer.id, newStatus, payload);
-                    
+
                     // If transfer failed after we debited their balance locally, refund them
                     if (newStatus === 'FAILED') {
                         await accountService.creditAccount(transfer.virtualAccountId, transfer.amount);
