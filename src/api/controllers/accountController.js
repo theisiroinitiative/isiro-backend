@@ -54,7 +54,6 @@ class AccountController {
                 gender,
                 address,
                 beneficiary_account,
-                beneficiary_bank_code,
                 customer_identifier
             });
 
