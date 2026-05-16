@@ -177,7 +177,7 @@ async function executeWriteOperation(userId, intent, phaseTwo) {
             await SaleService.addSale({
                 productId: data.productId,
                 userId,
-                quantity: data.quantitySold,
+                quantity: data.quantity || data.quantitySold,
                 amountPaid: data.amountPaid,
                 paymentSource: data.paymentSource,
                 verified: phaseTwo.verified,
@@ -185,7 +185,7 @@ async function executeWriteOperation(userId, intent, phaseTwo) {
             });
             break;
         case "UPDATE_STOCK":
-            await InventoryService.updateItem(data.productId, data.quantityAdded);
+            await InventoryService.updateItem(data.productId, data.quantityToAdd || data.quantityAdded);
             break;
         case "NEW_PRODUCT":
             // Handle both single object and array (for backward compatibility and new multi-product support)

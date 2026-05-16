@@ -15,7 +15,7 @@ export async function BehaviouralAnalyzerAndDecisionMaker({ text, image, audio }
         "confidenceScore": [0.0 to 1.0],
         "reason": [detailed explanation for the score],
         "suggested_response": [a message in Pidgin that confirms the transaction or asks for clarification if suspicious],
-        "finalData": [the finalized data for the intent, corrected if necessary]
+        "finalData": [the finalized data for the intent, corrected if necessary. ALWAYS include identifiers like productId if they were provided in the context.]
     }
 
     Scoring guidelines:
@@ -25,7 +25,7 @@ export async function BehaviouralAnalyzerAndDecisionMaker({ text, image, audio }
 
     Intents you handle for verification:
     1. RECORD_SALE: Compare quantity sold with quantityInStock. Compare amountPaid with sellingPrice history.
-    2. UPDATE_STOCK: Compare quantityAdded with business size/past updates.
+    2. UPDATE_STOCK: Compare quantityToAdd with business size/past updates.
     3. RECORD_EXPENSE: Check if the expense category and amount are reasonable for this type of business.
     4. NEW_PRODUCT: Check if the products fit the business category. If multiple products, analyze them collectively.
     5. UNMATCHED_WEBHOOK_TRANSACTION: A payment was received but no matching sale was found. Analyze the transaction (amount, source) and draft a Pidgin message asking the user what the payment was for (e.g., "I see you receive 5k for your account, wetin be that money for?").
