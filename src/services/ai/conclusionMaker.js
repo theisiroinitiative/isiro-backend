@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "dummy_key");
 
 export async function BehaviouralAnalyzerAndDecisionMaker({ text, image, audio }) {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const prompt = `
     You are part of an intelligent business management system for the Nigerian informal economy.
     Your job is Phase 2: Behavioral Analysis and Decision Making.
@@ -72,4 +72,4 @@ export async function BehaviouralAnalyzerAndDecisionMaker({ text, image, audio }
         parsed = { raw: textResponse };
     }
     return parsed;
-}
+}

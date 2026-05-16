@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "dummy_key");
 
 export async function detectIntent({ text, image, audio, previousContext }) {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     let prompt = `
     You are a part of an intelligent business management system for
     the Nigerian informal economy. You can only return JSON as response.
@@ -118,4 +118,4 @@ export async function detectIntent({ text, image, audio, previousContext }) {
         parsed = { raw: textResponse };
     }
     return parsed;
-}
+}
