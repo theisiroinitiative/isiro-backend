@@ -1,10 +1,9 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "dummy_key");
 
 export async function detectIntent({ text, image, audio, previousContext }) {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     let prompt = `
     You are a part of an intelligent business management system for
     the Nigerian informal economy. You can only return JSON as response.
@@ -29,9 +28,9 @@ export async function detectIntent({ text, image, audio, previousContext }) {
     Schema: { "intent": "RECALL_EVENT", "type": ["sale", "expense", "inventory", "transaction"], "timeStamp": ["today", "yesterday", "specific date", etc.], "productName": [optional], "amount": [optional] }
     If info is missing, return action: "REQUEST_DATA" with suggested_response in Pidgin.
 
-    5. 'NEW_PRODUCT' -> message shows user wants to register a new product.
-    Schema: { "intent": "NEW_PRODUCT", "phase": 1, "productName": [name], "costPrice": [cost], "sellingPrice": [selling], "quantityInStock": [quantity] }
-    If info is missing, return action: "REQUEST_DATA" with suggested_response in Pidgin.
+    5. 'NEW_PRODUCT' -> message shows user wants to register one or more new products.
+    Schema: { "intent": "NEW_PRODUCT", "phase": 1, "products": [ { "productName": [name], "costPrice": [cost], "sellingPrice": [selling], "quantityInStock": [quantity] } ] }
+    If info is missing for ANY product, return action: "REQUEST_DATA" with suggested_response in Pidgin.
 
     6. 'GET_BUSINESS_INFO' -> message shows user wants general business performance info (total sales, profit, etc.).
     Schema: { "intent": "GET_BUSINESS_INFO", "timeStamp": [time frame], "metric": ["sales", "profit", "expenses", "all"] }
@@ -112,9 +111,11 @@ export async function detectIntent({ text, image, audio, previousContext }) {
 
     let parsed;
     try {
-        parsed = JSON.parse(textResponse);
+        // Clean markdown code blocks if AI included them
+        const cleanJson = textResponse.replace(/```json\n?|\n?```/g, '').trim();
+        parsed = JSON.parse(cleanJson);
     } catch {
         parsed = { raw: textResponse };
     }
     return parsed;
-}
+}

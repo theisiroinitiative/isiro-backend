@@ -35,6 +35,7 @@ export async function messageProcessor(message, phoneNumber, _depth = 0) {
 
     // Phase 1: Intent Detection (with context)
     const phaseOneResult = await detectIntent({ text: messageText, image: message.image, audio: message.audio, previousContext });
+    console.log('Phase 1 Result:', phaseOneResult);
 
     // Handle State Clearing (Unrelated message)
     if (phaseOneResult.intent === "UNRELATED") {
@@ -169,6 +170,8 @@ async function getBusinessContext(userId, phaseOne) {
 
 async function executeWriteOperation(userId, intent, phaseTwo) {
     const data = phaseTwo.finalData;
+    console.log(`Executing write operation for intent: ${intent}`, data);
+
     switch (intent) {
         case "RECORD_SALE":
             await SaleService.addSale({
@@ -185,10 +188,14 @@ async function executeWriteOperation(userId, intent, phaseTwo) {
             await InventoryService.updateItem(data.productId, data.quantityAdded);
             break;
         case "NEW_PRODUCT":
-            await InventoryService.addItem({
-                ...data,
-                userId
-            });
+            // Handle both single object and array (for backward compatibility and new multi-product support)
+            const products = Array.isArray(data.products) ? data.products : (data.productName ? [data] : []);
+            for (const product of products) {
+                await InventoryService.addItem({
+                    ...product,
+                    userId
+                });
+            }
             break;
         case "RECORD_EXPENSE":
             await ExpenseService.createExpense({

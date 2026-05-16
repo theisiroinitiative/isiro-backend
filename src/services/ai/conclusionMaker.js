@@ -1,10 +1,9 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "dummy_key");
 
 export async function BehaviouralAnalyzerAndDecisionMaker({ text, image, audio }) {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const prompt = `
     You are part of an intelligent business management system for the Nigerian informal economy.
     Your job is Phase 2: Behavioral Analysis and Decision Making.
@@ -28,7 +27,7 @@ export async function BehaviouralAnalyzerAndDecisionMaker({ text, image, audio }
     1. RECORD_SALE: Compare quantity sold with quantityInStock. Compare amountPaid with sellingPrice history.
     2. UPDATE_STOCK: Compare quantityAdded with business size/past updates.
     3. RECORD_EXPENSE: Check if the expense category and amount are reasonable for this type of business.
-    4. NEW_PRODUCT: Check if the product type fits the business category.
+    4. NEW_PRODUCT: Check if the products fit the business category. If multiple products, analyze them collectively.
     5. UNMATCHED_WEBHOOK_TRANSACTION: A payment was received but no matching sale was found. Analyze the transaction (amount, source) and draft a Pidgin message asking the user what the payment was for (e.g., "I see you receive 5k for your account, wetin be that money for?").
 
     Pidgin suggested response should be respectful and conversational. If confidence is low, ask "Abeg, why this one be like this?" type of questions.
@@ -67,9 +66,10 @@ export async function BehaviouralAnalyzerAndDecisionMaker({ text, image, audio }
 
     let parsed;
     try {
-        parsed = JSON.parse(textResponse);
+        const cleanJson = textResponse.replace(/```json\n?|\n?```/g, '').trim();
+        parsed = JSON.parse(cleanJson);
     } catch {
         parsed = { raw: textResponse };
     }
     return parsed;
-}
+}
