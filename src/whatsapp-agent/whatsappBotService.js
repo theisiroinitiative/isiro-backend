@@ -113,7 +113,7 @@ class WhatsAppBotService {
 
         // Check for WhatsApp Verification Code
         let user = await userServices.fetchUserDataByPhone(phoneNumber);
-        
+
         // If user not found by JID-prefix, they might be using an LID and sending their verification code
         if (!user && cleanBody.length >= 4) {
             const potentialUser = await userServices.fetchUserByWhatsappCode(cleanBody);
@@ -128,7 +128,7 @@ class WhatsAppBotService {
         if (user && user.whatsappVerificationCode && cleanBody === user.whatsappVerificationCode) {
             const verified = await userServices.verifyWhatsappCode(phoneNumber, cleanBody);
             if (verified) {
-                await this.sendMessage(from, `Welcome to Haggle Proof Ledger, ${user.name}! 🎊\n\nI be your intelligent business assistant. I fit help you record sales, track inventory, and even help you get loans based on your business data.\n\nJust send me a message like "I sell 2 bread for 500" or "How much I get for my account?" and I go help you out!`);
+                await this.sendMessage(from, `Welcome to Isiro, ${user.name}! 🎊\n\nI be your intelligent business assistant. I fit help you record sales, track inventory, and even help you get loans based on your business data.\n\nJust send me a message like "I sell 2 bread for 500" or "How much I get for my account?" and I go help you out!`);
                 return;
             }
         }
