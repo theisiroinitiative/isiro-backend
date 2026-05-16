@@ -134,6 +134,17 @@ export async function messageProcessor(message, phoneNumber, _depth = 0) {
         const phaseTwoResult = await BehaviouralAnalyzerAndDecisionMaker({
             text: JSON.stringify({ phaseOne: phaseOneResult, context })
         });
+        console.log('Phase 2 Result:', phaseTwoResult);
+
+        // Standardize finalData and ensure productId is present
+        if (!phaseTwoResult.finalData) {
+            phaseTwoResult.finalData = { ...phaseOneResult };
+        }
+        
+        if (context.product && !phaseTwoResult.finalData.productId) {
+            phaseTwoResult.finalData.productId = context.product.id;
+            console.log('Injected productId from context:', context.product.id);
+        }
 
         // Execute DB Operation
         await executeWriteOperation(userId, phaseOneResult.intent, phaseTwoResult);
@@ -163,6 +174,7 @@ async function getBusinessContext(userId, phaseOne) {
     const context = {};
     if (phaseOne.productName) {
         context.product = await InventoryService.getProductByName(userId, phaseOne.productName);
+        console.log(`Context fetch for "${phaseOne.productName}":`, context.product ? 'FOUND' : 'NOT FOUND');
     }
     // Add more context as needed (e.g., recent sales)
     return context;
